@@ -6,3 +6,4 @@
 4.在配置numpy和torch时，选择合适的版本
 5.缺少lib时 apt install libgl1-mesa-glx
 6.下模型链接失败是：export HF_ENDPOINT=https://hf-mirror.com
+7.最后运行即可
