@@ -19,8 +19,8 @@ os.environ["TRANSFORMERS_CACHE"] = "xxx/xxx/xxx"    #指定了 Hugging Face Tran
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com" #指定了 Hugging Face 库访问模型和数据集的服务器地址
 
 # 定义路径
-base_path = '/wuxiangbo/china_medical_case_repository/data-sort/1000-1999'
-output_dir = '/wuxiangbo/md_output/1000-1999'
+base_path = '/xxx/xxx/'
+output_dir = '/xxx/xxx'
 
 # 加载所有模型
 model_lst = load_all_models()
