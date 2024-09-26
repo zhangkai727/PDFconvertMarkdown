@@ -1,3 +1,7 @@
+import warnings
+
+# 忽略特定的 FutureWarning
+warnings.filterwarnings("ignore", category=FutureWarning, message=".*image_processor_class.*")
 import os
 import re
 import json
@@ -8,19 +12,21 @@ from marker.convert import convert_single_pdf
 from marker.output import markdown_exists, save_markdown
 from marker.models import load_all_models
 from PIL import Image
-import concurrent.futures
 import logging
+import base64
+from loguru import logger
+import concurrent.futures
 
 # 设置环境变量
-os.environ["HF_DATASETS_CACHE"] = "xxx/xxx/xxx"     #指定了 Hugging Face Datasets 库缓存数据集的位置
-os.environ["HF_HOME"] = "xxx/xxx/xxx"               #指定了 Hugging Face 库的主目录
-os.environ["HUGGINGFACE_HUB_CACHE"] = "xxx/xxx/xxx" #指定了 Hugging Face Hub 库缓存模型和数据集的位置
-os.environ["TRANSFORMERS_CACHE"] = "xxx/xxx/xxx"    #指定了 Hugging Face Transformers 库缓存模型的位置。
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com" #指定了 Hugging Face 库访问模型和数据集的服务器地址
+os.environ["HF_DATASETS_CACHE"] = "./cache_dir"     # 指定 Hugging Face Datasets 库缓存数据集的位置
+os.environ["HF_HOME"] = "./cache_dir"               # 指定 Hugging Face 库的主目录
+os.environ["HUGGINGFACE_HUB_CACHE"] = "./cache_dir/" # 指定 Hugging Face Hub 库缓存模型和数据集的位置
+os.environ["TRANSFORMERS_CACHE"] = "./cache_dir/"    # 指定 Hugging Face Transformers 库缓存模型的位置。
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com" # 指定 Hugging Face 库访问模型和数据集的服务器地址
 
 # 定义路径
-base_path = '/xxx/xxx/'
-output_dir = '/xxx/xxx'
+base_path = '/mnt/workspace/school'
+output_dir = '/mnt/workspace/output'
 
 # 加载所有模型
 model_lst = load_all_models()
@@ -101,11 +107,20 @@ def convert(pdf_file_path):
         return None
 
 def collect_all_target_pdf():
-    all_pdf_files = glob(base_path + '/*/*.pdf')
+    all_pdf_files = glob(os.path.join(base_path, '*.pdf'))
+    print(f"Found {len(all_pdf_files)} PDF files.")
+    if not all_pdf_files:
+        print("No PDF files found. Please check the base_path and file structure.")
+
+    # for root, dirs, files in os.walk(base_path):
+    #     print(f"Checking directory: {root}")
+    #     for file in files:
+    #         if file.endswith('.pdf'):
+    #             print(f"Found PDF file: {os.path.join(root, file)}")
+
     markdown_files_info = []
 
-    # 使用 ThreadPoolExecutor 进行并行处理
-    max_workers = 1  # 设置最大线程数
+    max_workers = 1
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(convert, pdf_file): pdf_file for pdf_file in all_pdf_files}
         for future in tqdm(concurrent.futures.as_completed(futures), total=len(all_pdf_files)):
@@ -116,7 +131,6 @@ def collect_all_target_pdf():
             except Exception as e:
                 logging.error(f"Error in future result: {e}")
 
-    # 将所有Markdown文件的信息写入result.json文件
     with open('result.json', 'w') as f:
         json.dump(markdown_files_info, f, ensure_ascii=False, indent=4)
 
